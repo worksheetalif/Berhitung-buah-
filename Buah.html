@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Berhitung 20 Buah</title>
+<style>
+  body{font-family:sans-serif;background:#FFF3E0;text-align:center;margin:0;padding:12px;user-select:none}
+  .box{max-width:500px;margin:auto;background:#fff;border-radius:20px;padding:16px;border:4px solid #FFB74D}
+  .top{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:10px}
+  .tag{background:#E1F5FE;color:#0277BD;padding:5px 12px;border-radius:12px}
+  .skor{background:#FFF9C4;color:#F57F17;padding:5px 12px;border-radius:12px}
+  h2{color:#E65100;margin:5px 0}
+  .soal{color:#2E7D32;font-weight:bold;margin-bottom:12px}
+  .area{background:#F1F8E9;border:3px solid #81C784;border-radius:16px;min-height:150px;padding:12px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;margin-bottom:12px}
+  .item{font-size:3.2em;cursor:pointer;position:relative;padding:4px}
+  .num{position:absolute;top:0;right:0;background:#D32F2F;color:#fff;font-size:.35em;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
+  .msg{font-weight:bold;min-height:24px;margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+  .btn{background:#FFCA28;border:none;border-bottom:4px solid #FFA000;border-radius:10px;font-size:1.4em;font-weight:bold;padding:10px 0;cursor:pointer}
+  .ok{background:#66BB6A!important;border-color:#388E3C!important;color:#fff}
+  .no{background:#EF5350!important;border-color:#D32F2F!important;color:#fff}
+  .nav{display:flex;gap:10px}
+  .nbtn{flex:1;background:#29B6F6;border:none;border-bottom:4px solid #0288D1;color:#fff;font-weight:bold;padding:10px;border-radius:20px;font-size:1em;cursor:pointer}
+  .nbtn:disabled{background:#CFD8DC;border-color:#B0BEC5}
+</style>
+</head>
+<body>
+
+<div class="box" id="app">
+  <div class="top">
+    <span class="tag" id="hal">Hal 1 / 20</span>
+    <span class="skor">⭐ <span id="skr">0</span> / 20</span>
+  </div>
+  <h2>🍎 Berhitung Buah 🍌</h2>
+  <div class="soal"><span id="ins"></span> <button onclick="suaraSoal()" style="border:none;background:#FF7043;color:#fff;border-radius:50%;width:28px;height:28px">🔊</button></div>
+  <div class="area" id="area"></div>
+  <div class="msg" id="msg"></div>
+  <div class="grid" id="grid"></div>
+  <div class="nav">
+    <button class="nbtn" id="prev" onclick="geser(-1)">⬅️ Balik</button>
+    <button class="nbtn" id="next" style="background:#66BB6A;border-color:#388E3C" onclick="geser(1)">Lanjut ➡️</button>
+  </div>
+</div>
+
+<script>
+const data = [
+  ['🍎','apel',2],['🍌','pisang',4],['🍊','jeruk',3],['🍓','stroberi',5],['🍇','anggur',1],
+  ['🍉','semangka',6],['🍍','nanas',3],['🥭','mangga',7],['🍒','ceri',8],['🍑','persik',4],
+  ['🍐','pir',6],['🥝','kiwi',9],['🥑','alpukat',5],['🥥','kelapa',2],['🍋','lemon',10],
+  ['🫐','bluberi',8],['🍈','melon',7],['🍅','tomat',9],['🍆','terong',6],['🌽','jagung',10]
+];
+
+let hal = 0, klik = 0, lulus = Array(20).fill(false);
+
+function bicara(t) {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    let u = new SpeechSynthesisUtterance(t);
+    u.lang = 'id-ID'; u.rate = 0.95; u.pitch = 1.2;
+    speechSynthesis.speak(u);
+  }
+}
+
+function suaraSoal() {
+  bicara(`Halaman ${hal+1}. Ada berapa ${data[hal][1]}? Klik buahnya!`);
+}
+
+function render() {
+  klik = 0;
+  let [emo, nama, jml] = data[hal];
+  document.getElementById('hal').innerText = `Hal ${hal+1} / 20`;
+  document.getElementById('skr').innerText = lulus.filter(Boolean).length;
+  document.getElementById('ins').innerText = `Ada berapa ${nama}?`;
+  document.getElementById('msg').innerText = lulus[hal] ? `✅ Benar! Ada ${jml} ${nama}.` : '';
+  document.getElementById('msg').style.color = '#2E7D32';
+
+  let area = document.getElementById('area');
+  area.innerHTML = '';
+  for (let i = 0; i < jml; i++) {
+    let d = document.createElement('div');
+    d.className = 'item';
+    d.innerText = emo;
+    d.onclick = function() {
+      if (!this.dataset.n) {
+        klik++;
+        this.dataset.n = klik;
+        this.innerHTML = `${emo}<span class="num">${klik}</span>`;
+        bicara(klik);
+      } else {
+        bicara(this.dataset.n);
+      }
+    };
+    area.appendChild(d);
+  }
+
+  let grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (let n = 1; n <= 10; n++) {
+    let b = document.createElement('button');
+    b.className = 'btn' + (lulus[hal] && n === jml ? ' ok' : '');
+    b.innerText = n;
+    b.onclick = () => cek(n, b);
+    grid.appendChild(b);
+  }
+
+  document.getElementById('prev').disabled = hal === 0;
+  document.getElementById('next').innerText = hal === 19 ? 'Selesai 🎉' : 'Lanjut ➡️';
+}
+
+function cek(n, b) {
+  let [, nama, jml] = data[hal];
+  let m = document.getElementById('msg');
+  if (n === jml) {
+    lulus[hal] = true;
+    b.classList.add('ok');
+    document.getElementById('skr').innerText = lulus.filter(Boolean).length;
+    m.style.color = '#2E7D32';
+    m.innerText = `🎉 Hebat! Ada ${jml} ${nama}!`;
+    bicara(`Hebat! Benar, ada ${jml} ${nama}`);
+  } else {
+    b.classList.add('no');
+    m.style.color = '#C62828';
+    m.innerText = `Bukan ${n}, hitung lagi ya!`;
+    bicara(`Bukan ${n}, coba hitung lagi!`);
+  }
+}
+
+function geser(arah) {
+  if (arah === 1 && hal === 19) {
+    let tot = lulus.filter(Boolean).length;
+    document.getElementById('app').innerHTML = `<h1>🏆 Selesai! 🎉</h1><p>Semua 20 halaman selesai!</p><h3>Total Bintang: ${tot} / 20 ⭐</h3><button class="nbtn" style="background:#66BB6A;border-color:#388E3C" onclick="location.reload()">🔄 Ulangi</button>`;
+    bicara('Selamat! Semua dua puluh halaman sudah selesai!');
+    return;
+  }
+  hal += arah;
+  render();
+  suaraSoal();
+}
+
+render();
+</script>
+</body>
+</html>
